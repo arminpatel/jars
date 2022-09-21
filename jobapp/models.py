@@ -5,7 +5,7 @@ User = get_user_model()
 
 
 class Application(models.Model):
-    applicant = models.ForeignKey(User, on_delete=models.CASCADE)
+    applicant = models.ForeignKey(User, on_delete=models.CASCADE, related_name='applications')
     opening = models.CharField(max_length=25)     # should be a foreign key
     selected = models.BooleanField(default=False)
     description = models.TextField(null=True)
