@@ -6,4 +6,4 @@ from jobapp.models import Application
 class ApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Application
-        fields = ['applicant', 'opening', 'selected', 'description']
+        fields = ['id', 'applicant', 'opening', 'selected', 'description']

@@ -1,3 +1,4 @@
+from rest_framework import permissions
 from rest_framework.generics import ListCreateAPIView
 
 from jobapp.models import Application
@@ -8,3 +9,4 @@ class ListCreateApplicationView(ListCreateAPIView):
     """View to list and create application"""
     queryset = Application.objects.all()
     serializer_class = ApplicationSerializer
+    permission_classes = (permissions.IsAuthenticated,)
