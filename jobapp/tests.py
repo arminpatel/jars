@@ -98,3 +98,95 @@ def testCreateApplication_authenticatedUserRequest_returnSuccessful(test_user):
                              }
     assert Application.objects.count() == 1
     assert created_application.description == 'some desc'
+
+
+@pytest.mark.django_db
+def testUpdateApplication_unauthenticatedUserRequest_returnsForbidden(test_user):
+    # given
+    client = APIClient()
+
+    test_application = Application.objects.create(applicant=test_user,
+                                                  opening='1',
+                                                  selected=False,
+                                                  description='some desc')
+
+    # when
+    response = client.put(f'/applications/{test_application.id}/',
+                          {'applicant': test_user.id,
+                           'opening': 1,
+                           'selected': True,
+                           'description': 'some desc'
+                           })
+
+    # then
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def testUpdateApplication_authenticatedUserRequest_updatesSuccesful(test_user):
+    # given
+    client = APIClient()
+    client.force_authenticate(test_user)
+
+    test_application = Application.objects.create(applicant=test_user,
+                                                  opening='1',
+                                                  selected=False,
+                                                  description='some desc')
+
+    # when
+    response = client.put(f'/applications/{test_application.id}/',
+                          {'applicant': test_user.id,
+                           'opening': 1,
+                           'selected': False,
+                           'description': 'some other desc'
+                           })
+
+    # then
+    new_application = Application.objects.get(pk=test_application.id)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['description'] == 'some other desc'
+    assert new_application.description == 'some other desc'
+
+
+@pytest.mark.django_db
+def testRetrieveApplication_authenticatedUserRequest_updatesSuccesful(test_user):
+    # given
+    client = APIClient()
+    client.force_authenticate(test_user)
+
+    test_application = Application.objects.create(applicant=test_user,
+                                                  opening='1',
+                                                  selected=False,
+                                                  description='some desc')
+
+    # when
+    response = client.get(f'/applications/{test_application.id}/', format='json')
+
+    # then
+    response.status_code == status.HTTP_200_OK
+    assert response.data == {'id': test_application.id,
+                             'applicant': test_user.id,
+                             'opening': '1',
+                             'selected': False,
+                             'description': 'some desc'
+                             }
+
+
+@pytest.mark.django_db
+def testDestroyApplication_authenticatedUser_oneApplicationInDb_operationSuccessful(test_user):
+    # given
+    client = APIClient()
+    client.force_authenticate(test_user)
+
+    test_application = Application.objects.create(applicant=test_user,
+                                                  opening='1',
+                                                  selected=False,
+                                                  description='some desc')
+
+    # when
+    response = client.delete(f'/applications/{test_application.id}/')
+
+    # then
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert Application.objects.count() == 0
