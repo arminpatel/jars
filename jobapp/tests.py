@@ -36,7 +36,7 @@ def testListApplication_noApplicationInDb_returnEmptyList(test_user):
 
     # then
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data) == 0
+    assert response.data['count'] == 0
 
 
 @pytest.mark.django_db
@@ -54,7 +54,7 @@ def testListApplication_oneApplicationInDb_oneApplicationInResponse(test_user):
 
     # then
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data) == 1
+    assert len(response.data['results']) == 1
 
 
 @pytest.mark.django_db
@@ -228,3 +228,23 @@ def testPartialUpdateStatus_authenticatedUserRequest_updateSuccesful(test_user):
                              'status': 'AC',
                              'resume': None}
     assert updated_application.status == 'AC'
+
+
+@pytest.mark.django_db
+def testPagination_100ApplicationsInDb_50ResultsInFirstPage(test_user):
+    # gievn
+    client = APIClient()
+    client.force_authenticate(test_user)
+
+    for _ in range(100):
+        Application.objects.create(applicant=test_user,
+                                   opening='1',
+                                   description='some desc')
+
+    # when
+    response = client.get('/applications/', format='json')
+
+    # then
+    print(response.data)
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data['results']) == 50

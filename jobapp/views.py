@@ -9,7 +9,7 @@ from jobapp.serializers import ApplicationSerializer
 
 class ListCreateApplicationView(ListCreateAPIView):
     """View to list and create application"""
-    queryset = Application.objects.all()
+    queryset = Application.objects.all().order_by('-id')
     serializer_class = ApplicationSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
