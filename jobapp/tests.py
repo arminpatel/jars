@@ -91,7 +91,8 @@ def testCreateApplication_authenticatedUserRequest_returnSuccessful(test_user):
                              'applicant': test_user.id,
                              'opening': '1',
                              'status': 'IR',
-                             'description': 'some desc'
+                             'description': 'some desc',
+                             'resume': None
                              }
     assert Application.objects.count() == 1
     assert created_application.description == 'some desc'
@@ -163,7 +164,8 @@ def testRetrieveApplication_authenticatedUserRequest_updatesSuccesful(test_user)
                              'applicant': test_user.id,
                              'opening': '1',
                              'status': 'IR',
-                             'description': 'some desc'
+                             'description': 'some desc',
+                             'resume': None
                              }
 
 
@@ -218,9 +220,11 @@ def testPartialUpdateStatus_authenticatedUserRequest_updateSuccesful(test_user):
 
     # then
     updated_application = Application.objects.get(pk=test_application.id)
-    response.status_code == status.HTTP_200_OK
-    response.data == {'applicant': test_user.id,
-                      'opening': '1',
-                      'description': 'some desc',
-                      'status': 'AC'}
-    updated_application.status == 'AC'
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data == {'id': test_application.id,
+                             'applicant': test_user.id,
+                             'opening': '1',
+                             'description': 'some desc',
+                             'status': 'AC',
+                             'resume': None}
+    assert updated_application.status == 'AC'
