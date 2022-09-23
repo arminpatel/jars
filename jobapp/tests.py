@@ -14,7 +14,7 @@ def test_user(django_user_model):
 
 
 @pytest.mark.django_db
-def testListApplication_unauthenticatedUserRequest_returnsForbidden(test_user):
+def testListApplication_unauthenticatedUserRequest_throwsForbidden(test_user):
     # given
     client = APIClient()
 
@@ -58,7 +58,7 @@ def testListApplication_oneApplicationInDb_oneApplicationInResponse(test_user):
 
 
 @pytest.mark.django_db
-def testCreateApplication_unauthenticatedUserRequest_returnsForbidden(test_user):
+def testCreateApplication_unauthenticatedUserRequest_throwsForbidden(test_user):
     # given
     client = APIClient()
 
@@ -98,7 +98,7 @@ def testCreateApplication_authenticatedUserRequest_returnSuccessful(test_user):
 
 
 @pytest.mark.django_db
-def testUpdateApplication_unauthenticatedUserRequest_returnsForbidden(test_user):
+def testUpdateApplication_unauthenticatedUserRequest_throwsForbidden(test_user):
     # given
     client = APIClient()
 
@@ -183,3 +183,44 @@ def testDestroyApplication_authenticatedUser_oneApplicationInDb_operationSuccess
     # then
     assert response.status_code == status.HTTP_204_NO_CONTENT
     assert Application.objects.count() == 0
+
+
+@pytest.mark.django_db
+def testPartialUpdateStatus_unauthenticatedUserRequest_throwsForbidden(test_user):
+    # given
+    client = APIClient()
+
+    test_application = Application.objects.create(applicant=test_user,
+                                                  opening='1',
+                                                  description='some desc')
+
+    # when
+    response = client.patch(f'/applications/{test_application.id}/status/',
+                            {'status': 'AC'})
+
+    # then
+    response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def testPartialUpdateStatus_authenticatedUserRequest_updateSuccesful(test_user):
+    # given
+    client = APIClient()
+    client.force_authenticate(test_user)
+
+    test_application = Application.objects.create(applicant=test_user,
+                                                  opening='1',
+                                                  description='some desc')
+
+    # when
+    response = client.patch(f'/applications/{test_application.id}/status/',
+                            {'status': 'AC'})
+
+    # then
+    updated_application = Application.objects.get(pk=test_application.id)
+    response.status_code == status.HTTP_200_OK
+    response.data == {'applicant': test_user.id,
+                      'opening': '1',
+                      'description': 'some desc',
+                      'status': 'AC'}
+    updated_application.status == 'AC'
